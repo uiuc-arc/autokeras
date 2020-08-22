@@ -54,7 +54,7 @@ def test_structured_data_from_numpy_regressor(tmp_path):
     clf = ak.StructuredDataRegressor(directory=tmp_path,
                                      max_trials=2,
                                      seed=utils.SEED)
-    clf.fit(x_train, y_train, epochs=11, validation_data=(x_train, y_train))
+    clf.fit(x_train, y_train, epochs=2, validation_data=(x_train, y_train))
     clf.export_model()
     assert clf.predict(x_test).shape == (len(y_test), 1)
 
@@ -69,7 +69,7 @@ def test_structured_data_from_numpy_classifier(tmp_path):
     clf = ak.StructuredDataClassifier(directory=tmp_path,
                                       max_trials=1,
                                       seed=utils.SEED)
-    clf.fit(x_train, y_train, epochs=2, validation_data=(x_train, y_train))
+    clf.fit(x_train, y_train, epochs=1, validation_data=(x_train, y_train))
     clf.export_model()
     assert clf.predict(x_test).shape == (len(y_test), 3)
 
