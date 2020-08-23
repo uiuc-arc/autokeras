@@ -102,7 +102,7 @@ class StructuredDataInputAdapter(adapter_module.Adapter):
         obj.num_col = config['num_col']
 
     def check(self, x):
-        if not isinstance(x, (pd.DataFrame, np.ndarray)):
+        if not isinstance(x, (pd.DataFrame, np.ndarray, tf.data.Dataset)):
             raise TypeError('Unsupported type {type} for '
                             '{name}.'.format(type=type(x),
                                              name=self.__class__.__name__))
@@ -119,18 +119,10 @@ class StructuredDataInputAdapter(adapter_module.Adapter):
                                          '{name} in the data.'.format(
                                              name=column_name))
 
-        # Generate column_names.
         if self.column_names is None:
             if self.column_types:
                 raise ValueError('Column names must be specified.')
-            self.column_names = [index for index in range(x.shape[1])]
 
-        # Check if column_names has the correct length.
-        if len(self.column_names) != x.shape[1]:
-            raise ValueError('Expect column_names to have length {expect} '
-                             'but got {actual}.'.format(
-                                 expect=x.shape[1],
-                                 actual=len(self.column_names)))
 
     def convert_to_dataset(self, x):
         if isinstance(x, pd.DataFrame):
@@ -138,7 +130,6 @@ class StructuredDataInputAdapter(adapter_module.Adapter):
             x = x.values.astype(np.unicode)
         if isinstance(x, np.ndarray):
             x = x.astype(np.unicode)
-        x = tf.data.Dataset.from_tensor_slices(x)
         return super().convert_to_dataset(x)
 
     def fit(self, dataset):
@@ -182,6 +173,17 @@ class StructuredDataInputAdapter(adapter_module.Adapter):
 
     def infer_column_types(self):
         column_types = {}
+        
+        if self.column_names is None:
+            # Generate column names.
+            self.column_names = [index for index in range(self.num_col)]
+        # Check if column_names has the correct length.
+        elif len(self.column_names) != self.num_col:
+            raise ValueError('Expect column_names to have length {expect} '
+                             'but got {actual}.'.format(
+                                 expect=self.num_col,
+                                 actual=len(self.column_names)))
+
         for i in range(self.num_col):
             if self.count_categorical[i] > 0:
                 column_types[self.column_names[i]] = CATEGORICAL
